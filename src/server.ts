@@ -9,6 +9,15 @@ import { addTask, listTasks, completeTask } from "./tasks.js";
 const app = express();
 app.use(express.json());
 
+// Allow the dashboard (running from a different origin/file) to call this server
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header("Access-Control-Allow-Methods", "POST, OPTIONS");
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+  next();
+});
+
 function buildServer() {
   const server = new McpServer({
     name: "alexatasker-mcp",
@@ -27,6 +36,7 @@ function buildServer() {
       return {
         content: [
           { type: "text", text: `Added task: "${task.title}" (id: ${task.id})` },
+          { type: "text", text: JSON.stringify(task) },
         ],
       };
     }
@@ -43,7 +53,12 @@ function buildServer() {
       const summary = tasks.length
         ? tasks.map((t) => `- ${t.title}${t.dueDate ? ` (due ${t.dueDate})` : ""}`).join("\n")
         : "No tasks found.";
-      return { content: [{ type: "text", text: summary }] };
+      return {
+        content: [
+          { type: "text", text: summary },
+          { type: "text", text: JSON.stringify(tasks) },
+        ],
+      };
     }
   );
 
