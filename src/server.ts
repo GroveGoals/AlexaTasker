@@ -5,14 +5,13 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import { addTask, listTasks, completeTask } from "./tasks.js";
-import { planDay } from "./bedrock.js";
 
 const app = express();
 app.use(express.json());
 
 function buildServer() {
   const server = new McpServer({
-    name: "taskbridge-mcp",
+    name: "alexatasker-mcp",
     version: "0.1.0",
   });
 
@@ -67,22 +66,26 @@ function buildServer() {
 
   server.tool(
     "plan_day",
-    "Generate an AI-powered plan for the day based on current tasks (uses AWS Bedrock)",
+    "Generate a simple prioritized plan for the day based on current tasks",
     {},
     async () => {
       const tasks = listTasks(false);
-      const summary = tasks.length
-        ? tasks.map((t) => `- ${t.title}${t.dueDate ? ` (due ${t.dueDate})` : ""}`).join("\n")
-        : "No pending tasks.";
-      const plan = await planDay(summary);
-      return { content: [{ type: "text", text: plan }] };
+      if (!tasks.length) {
+        return { content: [{ type: "text", text: "No pending tasks — your day is open!" }] };
+      }
+      const withDates = tasks.filter((t) => t.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!));
+      const withoutDates = tasks.filter((t) => !t.dueDate);
+      const ordered = [...withDates, ...withoutDates];
+      const plan = ordered
+        .map((t, i) => `${i + 1}. ${t.title}${t.dueDate ? ` — due ${t.dueDate}` : ""}`)
+        .join("\n");
+      return { content: [{ type: "text", text: `Here's your plan for today:\n${plan}` }] };
     }
   );
 
   return server;
 }
 
-// Streamable HTTP endpoint at /mcp
 app.post("/mcp", async (req, res) => {
   const server = buildServer();
   const transport = new StreamableHTTPServerTransport({
@@ -100,5 +103,5 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`TaskBridge MCP server running on port ${PORT}`);
+  console.log(`AlexaTasker MCP server running on port ${PORT}`);
 });
