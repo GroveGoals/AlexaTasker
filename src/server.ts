@@ -9,7 +9,6 @@ import { addTask, listTasks, completeTask } from "./tasks.js";
 const app = express();
 app.use(express.json());
 
-// Allow the dashboard (running from a different origin/file) to call this server
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Content-Type");
