@@ -1,9 +1,131 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlexaTasker</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: #f4f1ea;
+    color: #2b2b28;
+    margin: 0;
+    padding: 2.5rem 1.5rem;
+  }
+  .container { max-width: 480px; margin: 0 auto; }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+    margin-bottom: 0.2rem;
+    border-bottom: 2px solid #2b2b28;
+    padding-bottom: 0.5rem;
+  }
+  .subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #6b675f;
+    font-size: 0.85rem;
+    margin-bottom: 2rem;
+  }
+  .add-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  input[type="text"], input[type="date"] {
+    background: #fff;
+    border: 1px solid #ccc7ba;
+    color: #2b2b28;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.9rem;
+  }
+  input[type="text"] { flex: 1; }
+  button {
+    background: #2b2b28;
+    color: #f4f1ea;
+    border: none;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: 0.03em;
+  }
+  button:hover { background: #4a4944; }
+  .task {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #ddd8cc;
+    padding: 0.7rem 0.1rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .task-title { font-size: 0.95rem; }
+  .task-due { color: #8a8577; font-size: 0.8rem; margin-left: 0.5rem; }
+  .done-btn {
+    background: transparent;
+    color: #6b675f;
+    border: 1px solid #ccc7ba;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .done-btn:hover { background: #ddd8cc; color: #2b2b28; }
+  .plan-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.7rem;
+    background: transparent;
+    color: #2b2b28;
+    border: 1px solid #2b2b28;
+  }
+  .plan-btn:hover { background: #2b2b28; color: #f4f1ea; }
+  .plan-output {
+    border-left: 3px solid #2b2b28;
+    padding: 0.8rem 1rem;
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    font-size: 0.9rem;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    display: none;
+  }
+  .empty {
+    color: #8a8577;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.85rem;
+    padding: 0.8rem 0.1rem;
+  }
+  .error-box {
+    color: #b00020;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 0.85rem;
+    padding: 0.8rem 0.1rem;
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>AlexaTasker</h1>
+    <p class="subtitle">A task list for Alexa+</p>
+
+    <div class="add-form">
+      <input type="text" id="taskInput" placeholder="Add a task" />
+      <input type="date" id="dueInput" />
+      <button onclick="addTask()">Add</button>
+    </div>
+
+    <div id="taskList"></div>
+
+    <button class="plan-btn" onclick="planDay()">Plan my day</button>
+    <div id="planOutput" class="plan-output"></div>
+  </div>
+
+  <script>
     const API_BASE = "https://alexatasker.onrender.com";
 
     function showError(msg) {
       const listEl = document.getElementById("taskList");
-      listEl.innerHTML = `<div style="color:#b00020; font-family:sans-serif; font-size:0.85rem;">Error: ${msg}</div>`;
+      listEl.innerHTML = `<div class="error-box">Error: ${msg}</div>`;
     }
 
     async function callTool(name, args = {}) {
@@ -100,3 +222,5 @@
 
     loadTasks();
   </script>
+</body>
+</html>
