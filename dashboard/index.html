@@ -122,19 +122,67 @@
 
   <script>
     const API_BASE = "https://alexatasker.onrender.com";
+    let sessionId = null;
+    let initPromise = null;
 
     function showError(msg) {
       const listEl = document.getElementById("taskList");
       listEl.innerHTML = `<div class="error-box">Error: ${msg}</div>`;
     }
 
-    async function callTool(name, args = {}) {
-      try {
+    async function ensureInitialized() {
+      if (sessionId) return;
+      if (initPromise) return initPromise;
+
+      initPromise = (async () => {
         const res = await fetch(`${API_BASE}/mcp`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json, text/event-stream"
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "initialize",
+            params: {
+              protocolVersion: "2025-11-25",
+              capabilities: {},
+              clientInfo: { name: "alexatasker-dashboard", version: "0.1.0" }
+            }
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Initialize failed with status ${res.status}`);
+        }
+        sessionId = res.headers.get("mcp-session-id");
+
+        await fetch(`${API_BASE}/mcp`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            ...(sessionId ? { "Mcp-Session-Id": sessionId } : {})
+          },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            method: "notifications/initialized"
+          }),
+        });
+      })();
+
+      return initPromise;
+    }
+
+    async function callTool(name, args = {}) {
+      try {
+        await ensureInitialized();
+        const res = await fetch(`${API_BASE}/mcp`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+            ...(sessionId ? { "Mcp-Session-Id": sessionId } : {})
           },
           body: JSON.stringify({
             jsonrpc: "2.0",
